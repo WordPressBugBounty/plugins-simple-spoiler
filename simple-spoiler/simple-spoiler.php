@@ -2,144 +2,164 @@
 /*
 Plugin Name: Simple Spoiler
 Plugin URI: https://webliberty.ru/simple-spoiler/
-Description: The plugin allows to create simple spoilers with shortcode.
-Version: 1.4
+Description: Allows creating simple spoiler blocks via shortcode.
+Version: 1.5
 Author: Webliberty
 Author URI: https://webliberty.ru/
 Text Domain: simple-spoiler
-License: GPLv2 or later
+License: GPL v2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 */
 
-if ( ! defined( 'WPINC' ) ) {
-	die;
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
 }
 
-add_action( 'admin_menu', 'simple_spoiler_menu' );
-function simple_spoiler_menu() {
-	add_menu_page( __( 'Plugin Simple Spoiler', 'simple-spoiler' ), 'Simple Spoiler', 'manage_options', 'simple-spoiler', 'simple_spoiler_menu_output' );
+add_action( 'admin_menu', 'simple_spoiler_add_admin_menu' );
+function simple_spoiler_add_admin_menu() {
+	add_menu_page(
+		__( 'Simple Spoiler Settings', 'simple-spoiler' ),
+		'Simple Spoiler',
+		'manage_options',
+		'simple-spoiler',
+		'simple_spoiler_settings_page',
+		'dashicons-editor-code',
+		80
+	);
 }
 
-function simple_spoiler_menu_output() {
+function simple_spoiler_settings_page() {
 	?>
 	<div class="wrap">
-		<h2><?php echo get_admin_page_title() ?></h2>
-
-		<form action="options.php" method="POST">
+		<h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
+		<form action="options.php" method="post">
 			<?php
-				settings_fields( 'option_group' );
-				do_settings_sections( 'simple_spoiler_page' );
-				submit_button();
+			settings_fields( 'simple_spoiler_options' );
+			do_settings_sections( 'simple_spoiler_page' );
+			submit_button();
 			?>
-		
 		</form>
 	</div>
 	<?php
 }
 
-add_action( 'admin_notices', 'simple_spoiler_notice' );
-function simple_spoiler_notice() {
-	if (isset($_GET['settings-updated'])) {
-		?>
-		<div class="updated">
-			<p><?php _e( 'Settings updated', 'simple-spoiler' ); ?></p>
-		</div>
-		<?php 
+add_action( 'admin_notices', 'simple_spoiler_admin_notice' );
+function simple_spoiler_admin_notice() {
+	if ( isset( $_GET['settings-updated'] ) ) {
+		echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Settings updated', 'simple-spoiler' ) . '</p></div>';
 	}
-}	
-
-add_action( 'admin_init', 'simple_spoiler_settings' );
-function simple_spoiler_settings() {
-	register_setting( 'option_group', 'simple_spoiler_bg_wrap', 'sanitize_callback' );
-	register_setting( 'option_group', 'simple_spoiler_bg_body', 'sanitize_callback' );
-	register_setting( 'option_group', 'simple_spoiler_br_color', 'sanitize_callback' );
-
-	add_settings_section( 'simple_spoiler_section', __( 'Color settings', 'simple-spoiler' ), '', 'simple_spoiler_page' ); 
-
-	add_settings_field( 'spoiler_wrap', __( 'Background spoiler headline', 'simple-spoiler' ), 'spoiler_bg_wrap', 'simple_spoiler_page', 'simple_spoiler_section' );
-	add_settings_field( 'spoiler_body', __( 'Background spoiler body', 'simple-spoiler' ), 'spoiler_bg_body', 'simple_spoiler_page', 'simple_spoiler_section' );
-	add_settings_field( 'spoiler_border', __( 'Spoiler border color', 'simple-spoiler' ), 'spoiler_br_color', 'simple_spoiler_page', 'simple_spoiler_section' );
 }
 
-function spoiler_bg_wrap() {
-	$val = get_option( 'simple_spoiler_bg_wrap' );
-	$val = $val ? sanitize_hex_color( $val['input'] ) : '#f1f1f1';
-	?>
-	<input type="color" name="simple_spoiler_bg_wrap[input]" value="<?php echo esc_attr( $val ) ?>" />
-	<?php
+add_action( 'admin_init', 'simple_spoiler_register_settings' );
+function simple_spoiler_register_settings() {
+	register_setting( 'simple_spoiler_options', 'simple_spoiler_bg_wrap', 'simple_spoiler_sanitize_color' );
+	register_setting( 'simple_spoiler_options', 'simple_spoiler_bg_body', 'simple_spoiler_sanitize_color' );
+	register_setting( 'simple_spoiler_options', 'simple_spoiler_br_color', 'simple_spoiler_sanitize_color' );
+
+	add_settings_section(
+		'simple_spoiler_colors',
+		__( 'Spoiler Color Settings', 'simple-spoiler' ),
+		'__return_null',
+		'simple_spoiler_page'
+	);
+
+	add_settings_field( 'spoiler_bg_wrap', __( 'Header Background', 'simple-spoiler' ), 'simple_spoiler_field_bg_wrap', 'simple_spoiler_page', 'simple_spoiler_colors' );
+	add_settings_field( 'spoiler_bg_body', __( 'Body Background', 'simple-spoiler' ), 'simple_spoiler_field_bg_body', 'simple_spoiler_page', 'simple_spoiler_colors' );
+	add_settings_field( 'spoiler_border_color', __( 'Border Color', 'simple-spoiler' ), 'simple_spoiler_field_br_color', 'simple_spoiler_page', 'simple_spoiler_colors' );
 }
 
-function spoiler_bg_body() {
-	$val = get_option('simple_spoiler_bg_body');
-	$val = $val ? sanitize_hex_color( $val['input'] ) : '#fbfbfb';
-	?>
-	<input type="color" name="simple_spoiler_bg_body[input]" value="<?php echo esc_attr( $val ) ?>" />
-	<?php
+function simple_spoiler_field_bg_wrap() {
+	$value = get_option( 'simple_spoiler_bg_wrap', array( 'input' => '#f1f1f1' ) );
+	$color = isset( $value['input'] ) ? sanitize_hex_color( $value['input'] ) : '#f1f1f1';
+	echo '<input type="color" name="simple_spoiler_bg_wrap[input]" value="' . esc_attr( $color ) . '" />';
 }
 
-function spoiler_br_color() {
-	$val = get_option('simple_spoiler_br_color');
-	$val = $val ? sanitize_hex_color( $val['input'] ) : '#dddddd';
-	?>
-	<input type="color" name="simple_spoiler_br_color[input]" value="<?php echo esc_attr( $val ) ?>" />
-	<?php
+function simple_spoiler_field_bg_body() {
+	$value = get_option( 'simple_spoiler_bg_body', array( 'input' => '#fbfbfb' ) );
+	$color = isset( $value['input'] ) ? sanitize_hex_color( $value['input'] ) : '#fbfbfb';
+	echo '<input type="color" name="simple_spoiler_bg_body[input]" value="' . esc_attr( $color ) . '" />';
 }
 
-function sanitize_callback( $options ) { 
-	foreach( $options as $name => & $val ) {
-		if( $name == 'input' )
-			$val = strip_tags( $val );
+function simple_spoiler_field_br_color() {
+	$value = get_option( 'simple_spoiler_br_color', array( 'input' => '#dddddd' ) );
+	$color = isset( $value['input'] ) ? sanitize_hex_color( $value['input'] ) : '#dddddd';
+	echo '<input type="color" name="simple_spoiler_br_color[input]" value="' . esc_attr( $color ) . '" />';
+}
+
+function simple_spoiler_sanitize_color( $option ) {
+	$sanitized = array();
+
+	if ( is_array( $option ) && isset( $option['input'] ) ) {
+		$sanitized['input'] = sanitize_hex_color( $option['input'] );
 	}
-	return $options;
+
+	return $sanitized;
 }
 
-function simple_spoiler_shortcode($atts, $content) {
-	if ( ! isset($atts['title']) ) {
-		$sp_name = __( 'Spoiler', 'simple-spoiler' );
-	} else {
-		$sp_name = $atts['title'];
-	}
+add_shortcode( 'spoiler', 'simple_spoiler_shortcode_render' );
+function simple_spoiler_shortcode_render( $atts, $content = '' ) {
+	$atts = shortcode_atts(
+		array(
+			'title' => __( 'Spoiler', 'simple-spoiler' ),
+		),
+		$atts,
+		'spoiler'
+	);
+
+	$title = esc_html( $atts['title'] );
+	$body  = wp_kses_post( $content );
+
 	return '<div class="spoiler-wrap">
-				<div class="spoiler-head folded">'.$sp_name.'</div>
-				<div class="spoiler-body">'.$content.'</div>
+				<div class="spoiler-head folded">' . $title . '</div>
+				<div class="spoiler-body">' . $body . '</div>
 			</div>';
 }
-add_shortcode( 'spoiler', 'simple_spoiler_shortcode' );
-add_filter( 'comment_text', 'do_shortcodes_in_comment', 11, 2 );
-function do_shortcodes_in_comment( $content, $comm ){
-	if( 'comment' === $comm->comment_type ){
-		$save = $shortcodes = & $GLOBALS['shortcode_tags'];
-		$shortcodes = [ 'spoiler' => $shortcodes['spoiler'] ];
-		$content = apply_shortcodes( $content );
-		$shortcodes = $save;
+
+add_filter( 'comment_text', 'simple_spoiler_enable_in_comments', 11, 2 );
+function simple_spoiler_enable_in_comments( $content, $comment ) {
+	if ( isset( $comment->comment_type ) && 'comment' === $comment->comment_type ) {
+		$original_tags = $GLOBALS['shortcode_tags'];
+		$GLOBALS['shortcode_tags'] = array( 'spoiler' => $original_tags['spoiler'] );
+		$content = do_shortcode( $content );
+		$GLOBALS['shortcode_tags'] = $original_tags;
 	}
 	return $content;
 }
 
-add_action( 'wp_enqueue_scripts', 'simple_spoiler_head' );
-function simple_spoiler_head() {
-	global $post;
-	wp_register_style( 'simple_spoiler_style', plugins_url( 'css/simple-spoiler.min.css', __FILE__ ), null, '1.2' );
-	wp_register_script( 'simple_spoiler_script', plugins_url( 'js/simple-spoiler.min.js', __FILE__ ), array( 'jquery' ), '1.2', true );
-		wp_enqueue_style( 'simple_spoiler_style' );
-		wp_enqueue_script( 'simple_spoiler_script' );
+add_action( 'wp_enqueue_scripts', 'simple_spoiler_enqueue_assets' );
+function simple_spoiler_enqueue_assets() {
+	wp_enqueue_style(
+		'simple-spoiler-style',
+		plugins_url( 'css/simple-spoiler.min.css', __FILE__ ),
+		array(),
+		'1.5'
+	);
+
+	wp_enqueue_script(
+		'simple-spoiler-script',
+		plugins_url( 'js/simple-spoiler.min.js', __FILE__ ),
+		array( 'jquery' ),
+		'1.5',
+		true
+	);
 }
 
-add_action( 'wp_head', 'simple_spoiler_css' );
-function simple_spoiler_css() {
-	global $post;
-		$bg_wrap = get_option( 'simple_spoiler_bg_wrap' );
-		$bg_body = get_option( 'simple_spoiler_bg_body' );
-		$br_color = get_option( 'simple_spoiler_br_color' );
+add_action( 'wp_head', 'simple_spoiler_inline_css' );
+function simple_spoiler_inline_css() {
+	$wrap_color = sanitize_hex_color( get_option( 'simple_spoiler_bg_wrap' )['input'] ?? '#f1f1f1' );
+	$body_color = sanitize_hex_color( get_option( 'simple_spoiler_bg_body' )['input'] ?? '#fbfbfb' );
+	$border     = sanitize_hex_color( get_option( 'simple_spoiler_br_color' )['input'] ?? '#dddddd' );
 
-		$spoiler_wrap = empty( $bg_wrap['input'] ) ? '#f1f1f1' : sanitize_hex_color( $bg_wrap['input'] );
-		$spoiler_body = empty( $bg_body['input'] ) ? '#fbfbfb' : sanitize_hex_color( $bg_body['input'] );
-		$spoiler_border = empty( $br_color['input'] ) ? '#dddddd' : sanitize_hex_color( $br_color['input'] );
-
-		?>
-		<style type="text/css">
-			.spoiler-head {background: <?php echo esc_attr($spoiler_wrap); ?>; border: 1px solid <?php echo esc_attr($spoiler_border); ?>;}
-			.spoiler-body {background: <?php echo esc_attr($spoiler_body); ?>; border-width: 0 1px 1px 1px; border-style: solid; border-color: <?php echo esc_attr($spoiler_border); ?>;}
-		</style>
-		<?php
+	echo '<style type="text/css">
+		.spoiler-head {
+			background: ' . esc_attr( $wrap_color ) . ';
+			border: 1px solid ' . esc_attr( $border ) . ';
+		}
+		.spoiler-body {
+			background: ' . esc_attr( $body_color ) . ';
+			border-width: 0 1px 1px 1px;
+			border-style: solid;
+			border-color: ' . esc_attr( $border ) . ';
+		}
+	</style>';
 }

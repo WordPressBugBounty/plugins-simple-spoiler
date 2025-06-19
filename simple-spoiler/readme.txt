@@ -3,10 +3,10 @@ Author: Webliberty
 Contributors: Webliberty
 Tags: spoiler
 Requires at least: 4.6
-Tested up to: 6.6
-Requires PHP: 5.6
-Stable tag: 1.4
-License: GPLv2 or later
+Tested up to: 6.8
+Requires PHP: 7.0
+Stable tag: 1.5
+License: GPL v2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
 The plugin allows to create simple spoilers with shortcode.
@@ -45,6 +45,10 @@ To change color layout of a spoiler, please, go to options page.
 
 == Changelog ==
 
+= 1.5 =
+* Fixed Cross Site Scripting (XSS) vulnerability.
+* Improved code performance and security.
+
 = 1.4 =
 * Fixed Unauthenticated Arbitrary Shortcode Execution vulnerability in comments.
 
@@ -62,6 +66,10 @@ To change color layout of a spoiler, please, go to options page.
 * Initial release.
 
 == Upgrade Notice ==
+
+= 1.5 =
+* Fixed Cross Site Scripting (XSS) vulnerability.
+* Improved code performance and security.
 
 = 1.4 =
 * Fixed Unauthenticated Arbitrary Shortcode Execution vulnerability in comments.
