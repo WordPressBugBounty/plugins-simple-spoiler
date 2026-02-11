@@ -2,7 +2,7 @@
 /*
 Plugin Name: Simple Spoiler
 Plugin URI: https://webliberty.ru/simple-spoiler/
-Description: Allows creating simple spoiler blocks via shortcode.
+Description: Allows creating simple spoiler via shortcode.
 Version: 1.5
 Author: Webliberty
 Author URI: https://webliberty.ru/
